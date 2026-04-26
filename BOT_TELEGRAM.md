@@ -128,7 +128,7 @@ pm2 startup
 ```bash
 npm run dev
 ```
-Acesse: `http://localhost:5173/silva.admin/login`
+Acesse: `http://localhost:5173/silva-admin/login`
 
 ### 2. Teste o Bot:
 ```bash
