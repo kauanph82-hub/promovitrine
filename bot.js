@@ -3,9 +3,19 @@ const { Telegraf } = require('telegraf');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const { v4: uuidv4 } = require('uuid');
-const supabase = require('./config/supabase');
+const { createClient } = require('@supabase/supabase-js');
 
 console.log('📦 Carregando bot.js...');
+
+// Configurar Supabase
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+console.log('🔧 Supabase configurado');
+console.log('URL:', process.env.SUPABASE_URL);
+console.log('Service Role Key:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Configurada ✅' : '❌ NÃO ENCONTRADA');
 
 // USA APENAS O TOKEN DO .ENV
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
