@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import api from '../../utils/api';
+import { supabase } from '../../lib/supabase';
 import { getPlatform, formatPrice } from '../../utils/platform';
 
 export default function AdminDashboard() {
@@ -19,11 +19,21 @@ export default function AdminDashboard() {
     }
     
     try {
-      // Admin busca todos (incluindo inativos): precisaria de endpoint específico
-      // Por simplicidade, usa o mesmo endpoint público
-      const { data } = await api.get('/products', { params: { page: p, limit: 20 } });
-      setProducts(data.products);
-      setTotal(data.total);
+      const limit = 20;
+      const from = (p - 1) * limit;
+      const to = from + limit - 1;
+
+      // Busca produtos com categoria
+      const { data, error, count } = await supabase
+        .from('products')
+        .select('*, category:categories(*), images(*), coupons(*)', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+
+      setProducts(data || []);
+      setTotal(count || 0);
       setPage(p);
     } catch (err) {
       console.error('Erro ao carregar produtos:', err);
@@ -37,29 +47,24 @@ export default function AdminDashboard() {
   async function handleDelete(id) {
     if (!confirm('Tem certeza que deseja remover este produto?')) return;
     
-    console.log('🗑️ Tentando deletar produto:', id);
-    console.log('Token no localStorage:', localStorage.getItem('admin_token') ? 'Existe' : 'Não existe');
-    
     setDeleting(id);
     try {
-      console.log('📡 Enviando DELETE para:', `/products/${id}`);
+      // Deleta imagens associadas primeiro
+      await supabase.from('images').delete().eq('product_id', id);
       
-      // BYPASS DE SEGURANÇA: Adiciona header especial
-      const response = await api.delete(`/products/${id}`, {
-        headers: {
-          'x-admin-master': 'silva_admin_93_secure' // Nova chave de segurança
-        }
-      });
+      // Deleta cupons associados
+      await supabase.from('coupons').delete().eq('product_id', id);
       
-      console.log('✅ Resposta:', response.data);
+      // Deleta o produto
+      const { error } = await supabase.from('products').delete().eq('id', id);
+      
+      if (error) throw error;
       
       setProducts(prev => prev.filter(p => p.id !== id));
       alert('Produto removido com sucesso!');
     } catch (err) {
       console.error('❌ Erro ao deletar:', err);
-      console.error('Status:', err.response?.status);
-      console.error('Dados:', err.response?.data);
-      alert('Erro ao remover produto: ' + (err.response?.data?.error || err.message));
+      alert('Erro ao remover produto: ' + err.message);
     } finally {
       setDeleting(null);
     }

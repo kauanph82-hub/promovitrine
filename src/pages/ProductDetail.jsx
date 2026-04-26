@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../utils/api';
+import { supabase } from '../lib/supabase';
 import { getPlatform, formatPrice, calcDiscount } from '../utils/platform';
 
 export default function ProductDetail() {
@@ -11,9 +11,18 @@ export default function ProductDetail() {
   const [copied, setCopied] = useState(null);
 
   useEffect(() => {
-    api.get(`/products/${id}`)
-      .then(({ data }) => setProduct(data))
-      .catch(() => setProduct(null))
+    supabase
+      .from('products')
+      .select('*, category:categories(*), images(*), coupons(*)')
+      .eq('id', id)
+      .single()
+      .then(({ data, error }) => {
+        if (error) {
+          setProduct(null);
+        } else {
+          setProduct(data);
+        }
+      })
       .finally(() => setLoading(false));
   }, [id]);
 

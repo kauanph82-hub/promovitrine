@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import ProductCard from '../components/ProductCard';
 import ProductModal from '../components/ProductModal';
-import api from '../utils/api';
+import { supabase } from '../lib/supabase';
 import { PLATFORMS } from '../utils/platform';
 
 const PLATFORMS_LIST = Object.entries(PLATFORMS).map(([k, v]) => ({ key: k, ...v }));
@@ -23,21 +23,36 @@ export default function Home() {
 
   const loadCategories = useCallback(async () => {
     try {
-      const { data } = await api.get('/categories');
-      setCategories(data);
+      const { data } = await supabase.from('categories').select('*').order('name');
+      setCategories(data || []);
     } catch {}
   }, []);
 
   const loadProducts = useCallback(async (p = 1, append = false) => {
     setLoading(true);
     try {
-      const params = { page: p, limit: LIMIT };
-      if (search)   params.search = search;
-      if (platform) params.platform = platform;
+      const from = (p - 1) * LIMIT;
+      const to = from + LIMIT - 1;
 
-      const { data } = await api.get('/products', { params });
-      setProducts(prev => append ? [...prev, ...data.products] : data.products);
-      setTotal(data.total);
+      let query = supabase
+        .from('products')
+        .select('*, category:categories(*), images(*), coupons(*)', { count: 'exact' })
+        .eq('active', true)
+        .order('created_at', { ascending: false });
+
+      if (search) {
+        query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+      }
+      if (platform) {
+        query = query.eq('platform', platform);
+      }
+
+      const { data, error, count } = await query.range(from, to);
+
+      if (error) throw error;
+
+      setProducts(prev => append ? [...prev, ...(data || [])] : (data || []));
+      setTotal(count || 0);
       setPage(p);
     } catch (err) {
       console.error(err);

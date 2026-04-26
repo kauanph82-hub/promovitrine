@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import api from '../../utils/api';
+import { supabase } from '../../lib/supabase';
 import { PLATFORMS } from '../../utils/platform';
 
 const EMPTY_COUPON = { code: '', description: '', discount: '', expires_at: '' };
@@ -25,12 +25,18 @@ export default function AdminProductForm() {
   });
 
   useEffect(() => {
-    api.get('/categories').then(({ data }) => setCategories(data));
+    // Carrega categorias
+    supabase.from('categories').select('*').then(({ data }) => setCategories(data || []));
 
     if (isEdit) {
       setLoading(true);
-      api.get(`/products/${id}`)
-        .then(({ data }) => {
+      supabase
+        .from('products')
+        .select('*, images(*), coupons(*)')
+        .eq('id', id)
+        .single()
+        .then(({ data, error }) => {
+          if (error) throw error;
           setForm({
             title: data.title || '',
             description: data.description || '',
@@ -51,6 +57,7 @@ export default function AdminProductForm() {
             })),
           });
         })
+        .catch(err => setError(err.message))
         .finally(() => setLoading(false));
     }
   }, [id, isEdit]);
@@ -65,14 +72,29 @@ export default function AdminProductForm() {
     if (!files.length) return;
     setUploading(true);
     try {
-      const formData = new FormData();
-      files.forEach(f => formData.append('images', f));
-      const { data } = await api.post('/upload/images', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      setForm(prev => ({ ...prev, images: [...prev.images, ...data.urls] }));
-    } catch {
-      setError('Erro ao fazer upload das imagens');
+      const uploadedUrls = [];
+      
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `products/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+
+        uploadedUrls.push(publicUrl);
+      }
+      
+      setForm(prev => ({ ...prev, images: [...prev.images, ...uploadedUrls] }));
+    } catch (err) {
+      setError('Erro ao fazer upload das imagens: ' + err.message);
     } finally {
       setUploading(false);
     }
@@ -112,22 +134,73 @@ export default function AdminProductForm() {
     setError('');
     setSaving(true);
 
-    const payload = {
-      ...form,
-      original_price: form.original_price ? parseFloat(form.original_price) : null,
-      promo_price: form.promo_price ? parseFloat(form.promo_price) : null,
-      tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-    };
-
     try {
+      const productData = {
+        title: form.title,
+        description: form.description,
+        original_price: form.original_price ? parseFloat(form.original_price) : null,
+        promo_price: form.promo_price ? parseFloat(form.promo_price) : null,
+        affiliate_link: form.affiliate_link,
+        platform: form.platform,
+        category_id: form.category_id || null,
+        tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+        featured: form.featured,
+        active: form.active,
+      };
+
+      let productId = id;
+
       if (isEdit) {
-        await api.put(`/products/${id}`, payload);
+        // Atualiza produto
+        const { error } = await supabase
+          .from('products')
+          .update(productData)
+          .eq('id', id);
+        if (error) throw error;
+
+        // Deleta imagens e cupons antigos
+        await supabase.from('images').delete().eq('product_id', id);
+        await supabase.from('coupons').delete().eq('product_id', id);
       } else {
-        await api.post('/products', payload);
+        // Cria novo produto
+        const { data, error } = await supabase
+          .from('products')
+          .insert([productData])
+          .select()
+          .single();
+        if (error) throw error;
+        productId = data.id;
       }
+
+      // Insere imagens
+      if (form.images.length > 0) {
+        const imagesData = form.images.map((url, index) => ({
+          product_id: productId,
+          url,
+          display_order: index,
+        }));
+        await supabase.from('images').insert(imagesData);
+      }
+
+      // Insere cupons
+      if (form.coupons.length > 0) {
+        const couponsData = form.coupons
+          .filter(c => c.code)
+          .map(c => ({
+            product_id: productId,
+            code: c.code,
+            description: c.description || null,
+            discount: c.discount || null,
+            expires_at: c.expires_at || null,
+          }));
+        if (couponsData.length > 0) {
+          await supabase.from('coupons').insert(couponsData);
+        }
+      }
+
       navigate('/silva.admin');
     } catch (err) {
-      setError(err.response?.data?.error || 'Erro ao salvar produto');
+      setError(err.message || 'Erro ao salvar produto');
     } finally {
       setSaving(false);
     }

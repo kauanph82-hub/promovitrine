@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Header from '../components/Header';
 import ProductCard from '../components/ProductCard';
 import ProductModal from '../components/ProductModal';
-import api from '../utils/api';
+import { supabase } from '../lib/supabase';
 
 export default function CategoryPage() {
   const { slug } = useParams();
@@ -16,15 +16,21 @@ export default function CategoryPage() {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    api.get('/categories').then(({ data }) => {
-      setCategories(data);
-      const cat = data.find(c => c.slug === slug);
+    supabase.from('categories').select('*').then(({ data }) => {
+      setCategories(data || []);
+      const cat = (data || []).find(c => c.slug === slug);
       setCategory(cat || null);
       if (cat) {
-        api.get('/products', { params: { category_id: cat.id, limit: 24, page: 1 } })
-          .then(({ data: pd }) => {
-            setProducts(pd.products);
-            setTotal(pd.total);
+        supabase
+          .from('products')
+          .select('*, category:categories(*), images(*), coupons(*)', { count: 'exact' })
+          .eq('category_id', cat.id)
+          .eq('active', true)
+          .order('created_at', { ascending: false })
+          .range(0, 23)
+          .then(({ data: pd, count }) => {
+            setProducts(pd || []);
+            setTotal(count || 0);
           })
           .finally(() => setLoading(false));
       } else {

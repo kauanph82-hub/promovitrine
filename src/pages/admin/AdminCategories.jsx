@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../utils/api';
+import { supabase } from '../../lib/supabase';
 
 const EMPTY = { name: '', slug: '', icon: '🏷️', description: '' };
 
@@ -14,8 +14,8 @@ export default function AdminCategories() {
   useEffect(() => { load(); }, []);
 
   async function load() {
-    const { data } = await api.get('/categories');
-    setCategories(data);
+    const { data } = await supabase.from('categories').select('*').order('name');
+    setCategories(data || []);
   }
 
   function autoSlug(name) {
@@ -39,16 +39,27 @@ export default function AdminCategories() {
     setError('');
     try {
       if (editing) {
-        const { data } = await api.put(`/categories/${editing}`, form);
+        const { data, error } = await supabase
+          .from('categories')
+          .update(form)
+          .eq('id', editing)
+          .select()
+          .single();
+        if (error) throw error;
         setCategories(prev => prev.map(c => c.id === editing ? data : c));
       } else {
-        const { data } = await api.post('/categories', form);
+        const { data, error } = await supabase
+          .from('categories')
+          .insert([form])
+          .select()
+          .single();
+        if (error) throw error;
         setCategories(prev => [...prev, data]);
       }
       setForm(EMPTY);
       setEditing(null);
     } catch (err) {
-      setError(err.response?.data?.error || 'Erro ao salvar');
+      setError(err.message || 'Erro ao salvar');
     } finally {
       setSaving(false);
     }
@@ -61,8 +72,10 @@ export default function AdminCategories() {
 
   async function handleDelete(id) {
     if (!confirm('Remover esta categoria?')) return;
-    await api.delete(`/categories/${id}`);
-    setCategories(prev => prev.filter(c => c.id !== id));
+    const { error } = await supabase.from('categories').delete().eq('id', id);
+    if (!error) {
+      setCategories(prev => prev.filter(c => c.id !== id));
+    }
   }
 
   return (
