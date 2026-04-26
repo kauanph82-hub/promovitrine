@@ -16,7 +16,7 @@ export default function AdminLogin() {
     setLoading(true);
     try {
       await login(username, password);
-      navigate('/silva.admin');
+      navigate('/silva-admin');
     } catch (err) {
       setError(err.message || 'Erro ao fazer login');
     } finally {

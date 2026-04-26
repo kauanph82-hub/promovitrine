@@ -83,7 +83,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/silva.admin/categorias" className="text-sm px-3 py-2 bg-stone-700 hover:bg-stone-600 rounded-lg transition-colors">
+            <Link to="/silva-admin/categorias" className="text-sm px-3 py-2 bg-stone-700 hover:bg-stone-600 rounded-lg transition-colors">
               📂 Categorias
             </Link>
             <Link to="/" className="text-sm px-3 py-2 bg-stone-700 hover:bg-stone-600 rounded-lg transition-colors" target="_blank">
@@ -116,7 +116,7 @@ export default function AdminDashboard() {
         {/* Ações */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display font-bold text-xl text-stone-900">Produtos postados</h2>
-          <Link to="/silva.admin/produto/novo" className="btn-primary flex items-center gap-2">
+          <Link to="/silva-admin/produto/novo" className="btn-primary flex items-center gap-2">
             + Novo produto
           </Link>
         </div>
@@ -175,7 +175,7 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-end gap-2">
-                            <Link to={`/silva.admin/produto/${product.id}/editar`}
+                            <Link to={`/silva-admin/produto/${product.id}/editar`}
                               className="text-xs px-3 py-1.5 border border-stone-200 rounded-lg hover:border-brand-400 hover:text-brand-600 transition-colors">
                               Editar
                             </Link>
@@ -198,7 +198,7 @@ export default function AdminDashboard() {
               <div className="text-center py-12 text-stone-400">
                 <div className="text-4xl mb-3">📭</div>
                 <p>Nenhum produto cadastrado ainda</p>
-                <Link to="/silva.admin/produto/novo" className="btn-primary mt-4 inline-block">Adicionar primeiro produto</Link>
+                <Link to="/silva-admin/produto/novo" className="btn-primary mt-4 inline-block">Adicionar primeiro produto</Link>
               </div>
             )}
           </div>

@@ -18,13 +18,13 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && window.location.pathname.startsWith('/silva.admin')) {
+    if (err.response?.status === 401 && window.location.pathname.startsWith('/silva-admin')) {
       localStorage.removeItem('admin_token');
-      window.location.href = '/silva.admin/login';
+      window.location.href = '/silva-admin/login';
     }
-    if (err.response?.status === 403 && window.location.pathname.startsWith('/silva.admin')) {
+    if (err.response?.status === 403 && window.location.pathname.startsWith('/silva-admin')) {
       localStorage.removeItem('admin_token');
-      window.location.href = '/silva.admin/login';
+      window.location.href = '/silva-admin/login';
     }
     return Promise.reject(err);
   }

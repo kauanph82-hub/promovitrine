@@ -30,7 +30,7 @@ function PrivateRoute({ children }) {
   // PROTEÇÃO ATIVADA: Redireciona para login se não estiver autenticado
   if (!admin) {
     console.log('❌ Não autenticado, redirecionando para login');
-    return <Navigate to="/silva.admin/login" replace />;
+    return <Navigate to="/silva-admin/login" replace />;
   }
   
   // console.log('✅ Autenticado:', admin.username);
@@ -47,19 +47,19 @@ export default function App() {
           <Route path="/produto/:id" element={<ProductDetail />} />
           <Route path="/categoria/:slug" element={<CategoryPage />} />
 
-          {/* Admin - Nova rota /silva.admin */}
-          <Route path="/silva.admin/login" element={<AdminLogin />} />
+          {/* Admin - Nova rota /silva-admin */}
+          <Route path="/silva-admin/login" element={<AdminLogin />} />
           
           {/* ROTA DE EMERGÊNCIA - REMOVER DEPOIS */}
           <Route path="/admin-force" element={<AdminDashboard />} />
           
-          <Route path="/silva.admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
-          <Route path="/silva.admin/produto/novo" element={<PrivateRoute><AdminProductForm /></PrivateRoute>} />
-          <Route path="/silva.admin/produto/:id/editar" element={<PrivateRoute><AdminProductForm /></PrivateRoute>} />
-          <Route path="/silva.admin/categorias" element={<PrivateRoute><AdminCategories /></PrivateRoute>} />
+          <Route path="/silva-admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
+          <Route path="/silva-admin/produto/novo" element={<PrivateRoute><AdminProductForm /></PrivateRoute>} />
+          <Route path="/silva-admin/produto/:id/editar" element={<PrivateRoute><AdminProductForm /></PrivateRoute>} />
+          <Route path="/silva-admin/categorias" element={<PrivateRoute><AdminCategories /></PrivateRoute>} />
 
           {/* Redireciona rotas antigas */}
-          <Route path="/admin/*" element={<Navigate to="/silva.admin" replace />} />
+          <Route path="/admin/*" element={<Navigate to="/silva-admin" replace />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

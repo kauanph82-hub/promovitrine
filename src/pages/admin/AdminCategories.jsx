@@ -82,7 +82,7 @@ export default function AdminCategories() {
     <div className="min-h-screen bg-stone-50">
       <header className="bg-stone-900 text-white px-4 py-4">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
-          <Link to="/silva.admin" className="text-stone-400 hover:text-white transition-colors">← Voltar</Link>
+          <Link to="/silva-admin" className="text-stone-400 hover:text-white transition-colors">← Voltar</Link>
           <h1 className="font-display font-bold text-lg">📂 Gerenciar Categorias</h1>
         </div>
       </header>

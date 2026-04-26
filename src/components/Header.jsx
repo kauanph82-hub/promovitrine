@@ -42,7 +42,7 @@ export default function Header({ categories = [] }) {
 
           {/* Logo Admin - Acesso rápido */}
           <Link 
-            to="/silva.admin" 
+            to="/silva-admin" 
             className="hidden md:block shrink-0 hover:opacity-80 transition-opacity"
             title="Acesso Admin"
           >
@@ -80,7 +80,7 @@ export default function Header({ categories = [] }) {
           
           {/* Logo Admin Mobile */}
           <Link 
-            to="/silva.admin" 
+            to="/silva-admin" 
             className="md:hidden flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full bg-stone-800 text-white hover:bg-brand-600 whitespace-nowrap transition-colors"
           >
             <img 

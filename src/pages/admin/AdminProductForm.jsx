@@ -198,7 +198,7 @@ export default function AdminProductForm() {
         }
       }
 
-      navigate('/silva.admin');
+      navigate('/silva-admin');
     } catch (err) {
       setError(err.message || 'Erro ao salvar produto');
     } finally {
@@ -213,7 +213,7 @@ export default function AdminProductForm() {
       {/* Header */}
       <header className="bg-stone-900 text-white px-4 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <Link to="/silva.admin" className="text-stone-400 hover:text-white transition-colors">← Voltar</Link>
+          <Link to="/silva-admin" className="text-stone-400 hover:text-white transition-colors">← Voltar</Link>
           <h1 className="font-display font-bold text-lg">
             {isEdit ? 'Editar produto' : 'Novo produto'}
           </h1>
@@ -393,7 +393,7 @@ export default function AdminProductForm() {
 
         {/* Botões */}
         <div className="flex gap-3 pb-8">
-          <Link to="/silva.admin" className="btn-secondary flex-1 text-center py-3">Cancelar</Link>
+          <Link to="/silva-admin" className="btn-secondary flex-1 text-center py-3">Cancelar</Link>
           <button type="submit" disabled={saving} className="btn-primary flex-1 py-3">
             {saving ? 'Salvando...' : isEdit ? '✓ Salvar alterações' : '+ Publicar produto'}
           </button>
